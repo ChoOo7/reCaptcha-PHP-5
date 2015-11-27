@@ -323,7 +323,7 @@ class Captcha
     protected function process($parameters)
     {
         // Properly encode parameters
-        $parameters = http_build_query($parameters);
+        $parameters = http_build_query($parameters, null, '&');
 
         // Make validation request
         $response = @file_get_contents('https://' . self::VERIFY_SERVER . '/recaptcha/api/siteverify?' . $parameters);
