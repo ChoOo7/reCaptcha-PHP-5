@@ -61,6 +61,8 @@ class Captcha
      * @var string
      */
     protected $remoteIp;
+    
+    protected $useRemoteIp = true;
 
     /**
      * Private key
@@ -203,6 +205,19 @@ class Captcha
         $this->remoteIp = $ip;
         return $this;
     }
+    
+    
+    /**
+     * Set use remote IP
+     *
+     * @param bool $use
+     * @return reCaptcha
+     */
+    public function setUseRemoteIp($use)
+    {
+        $this->useRemoteIp = $use;
+        return $this;
+    }
 
     /**
      * Get remote IP
@@ -292,14 +307,16 @@ class Captcha
             $response->setError('Incorrect-captcha-sol');
             return $response;
         }
-
-        $process = $this->process(
-            array(
+        
+        $datas = array(
                 'secret' => $this->getPrivateKey(),
-                'remoteip' => $this->getRemoteIp(),
                 'response' => $captchaResponse
-            )
-        );
+            );
+        if($this->useRemoteIp) {
+          $datas['remoteip'] = $this->getRemoteIp();
+        }
+
+        $process = $this->process($datas);
 
         $answer = @json_decode($process, true);
 
@@ -323,7 +340,7 @@ class Captcha
     protected function process($parameters)
     {
         // Properly encode parameters
-        $parameters = http_build_query($parameters);
+        $parameters = http_build_query($parameters, null, '&');
 
         // Make validation request
         $response = @file_get_contents('https://' . self::VERIFY_SERVER . '/recaptcha/api/siteverify?' . $parameters);
